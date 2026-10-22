@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="lb-card p-4 p-md-5">
+                <span class="lb-badge mb-3"><i class="bi bi-shield-lock-fill me-1"></i> Data Protection</span>
+                <h1 class="h2 fw-bold mb-3">Privacy Policy</h1>
+                <p class="text-secondary small">Last Updated: October 2026</p>
+
+                <h2 class="h5 fw-bold text-dark mt-4">1. Information We Collect</h2>
+                <p class="text-secondary small">
+                    LearnBridge collects personal information necessary to facilitate tutoring connections, including your full name, email address, city, teaching credentials, subject specializations, and requested tuition parameters. Passwords are cryptographically hashed using PBKDF2 with SHA-256 and are never stored in plaintext.
+                </p>
+
+                <h2 class="h5 fw-bold text-dark mt-4">2. How Information is Displayed</h2>
+                <p class="text-secondary small">
+                    Public tutor profiles display your name, city, headline, bio, hourly rate, and subjects taught. Your private email address and confidential contact information are strictly protected and never displayed on public search pages.
+                </p>
+
+                <h2 class="h5 fw-bold text-dark mt-4">3. Tuition Inquiries and Communication</h2>
+                <p class="text-secondary small">
+                    When a student submits a tuition request or a tutor responds to an open requirement, information is transmitted securely within the platform. Both parties can review academic requirements, schedule preferences, and agreed rates inside their dashboards.
+                </p>
+
+                <h2 class="h5 fw-bold text-dark mt-4">4. Security & Cookies</h2>
+                <p class="text-secondary small">
+                    Our web service utilizes HTTPS encryption, secure session cookies (HttpOnly, SameSite=Lax), and server-side CSRF validation to protect your account against unauthorized requests.
+                </p>
+
+                <h2 class="h5 fw-bold text-dark mt-4">5. Contact Us Regarding Privacy</h2>
+                <p class="text-secondary small">
+                    For inquiries about your stored data or to request account deletion, please contact privacy@learnbridge.com.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

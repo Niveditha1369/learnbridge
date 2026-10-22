@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Tutors – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Breadcrumb & Title -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Find Tutors</li>
+            </ol>
+        </nav>
+        <h1 class="h3 mb-1">Browse Qualified Tutors</h1>
+        <p class="text-secondary small mb-0">Discover verified educators matching your subject requirements, location, and budget.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3">
+            <div class="lb-card p-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <span class="fw-bold"><i class="bi bi-funnel me-1 text-primary"></i> Filters</span>
+                    <a href="{{ url_for('tutors') }}" class="small text-danger text-decoration-none">Reset All</a>
+                </div>
+
+                <form action="{{ url_for('tutors') }}" method="GET" id="filter-form">
+                    <!-- Keyword / Name -->
+                    <div class="mb-3">
+                        <label class="form-label">Search Name / Skill</label>
+                        <input type="text" name="q" class="form-control form-control-sm" value="{{ current_filters.q }}" placeholder="e.g. Ramesh or Calculus">
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <select name="subject" class="form-select form-select-sm">
+                            <option value="">All Subjects</option>
+                            {% for subj in all_subjects %}
+                                <option value="{{ subj.name }}" {% if current_filters.subject == subj.name %}selected{% endif %}>
+                                    {{ subj.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- City -->
+                    <div class="mb-3">
+                        <label class="form-label">City / Location</label>
+                        <input type="text" name="city" class="form-control form-control-sm" value="{{ current_filters.city }}" placeholder="e.g. Chennai, Bengaluru">
+                    </div>
+
+                    <!-- Teaching Mode -->
+                    <div class="mb-3">
+                        <label class="form-label">Teaching Mode</label>
+                        <select name="teaching_mode" class="form-select form-select-sm">
+                            <option value="Any" {% if current_filters.teaching_mode == 'Any' or not current_filters.teaching_mode %}selected{% endif %}>Any Mode</option>
+                            <option value="Online" {% if current_filters.teaching_mode == 'Online' %}selected{% endif %}>Online Only</option>
+                            <option value="In-Person" {% if current_filters.teaching_mode == 'In-Person' %}selected{% endif %}>In-Person</option>
+                            <option value="Both" {% if current_filters.teaching_mode == 'Both' %}selected{% endif %}>Online or In-Person</option>
+                        </select>
+                    </div>
+
+                    <!-- Hourly Fee Range -->
+                    <div class="mb-3">
+                        <label class="form-label">Hourly Fee (INR)</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" name="min_fee" class="form-control form-control-sm" value="{{ current_filters.min_fee }}" placeholder="Min ₹" min="0">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="max_fee" class="form-control form-control-sm" value="{{ current_filters.max_fee }}" placeholder="Max ₹" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Minimum Experience -->
+                    <div class="mb-3">
+                        <label class="form-label">Experience (Years)</label>
+                        <select name="min_exp" class="form-select form-select-sm">
+                            <option value="">Any Experience</option>
+                            <option value="1" {% if current_filters.min_exp == '1' %}selected{% endif %}>1+ Years</option>
+                            <option value="3" {% if current_filters.min_exp == '3' %}selected{% endif %}>3+ Years</option>
+                            <option value="5" {% if current_filters.min_exp == '5' %}selected{% endif %}>5+ Years</option>
+                            <option value="10" {% if current_filters.min_exp == '10' %}selected{% endif %}>10+ Years</option>
+                        </select>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="mb-3">
+                        <label class="form-label">Language</label>
+                        <input type="text" name="language" class="form-control form-control-sm" value="{{ current_filters.language }}" placeholder="e.g. English, Tamil">
+                    </div>
+
+                    <!-- Student Level -->
+                    <div class="mb-3">
+                        <label class="form-label">Target Level</label>
+                        <input type="text" name="student_level" class="form-control form-control-sm" value="{{ current_filters.student_level }}" placeholder="e.g. High School, College">
+                    </div>
+
+                    <!-- Sorting hidden or retained -->
+                    <input type="hidden" name="sort_by" value="{{ current_filters.sort_by }}">
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-custom btn-sm">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tutor Listings Column -->
+        <div class="col-lg-9">
+            <!-- Top Controls (Count & Sort) -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center pb-3 mb-3 border-bottom gap-2">
+                <div class="text-secondary small">
+                    Showing <span class="fw-bold text-dark">{{ pagination.total }}</span> available tutors
+                    {% if current_filters.subject %}
+                        for <span class="badge bg-light text-dark border">{{ current_filters.subject }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <label class="text-secondary small text-nowrap mb-0">Sort By:</label>
+                    <form action="{{ url_for('tutors') }}" method="GET" class="m-0">
+                        <!-- retain existing filter values -->
+                        <input type="hidden" name="q" value="{{ current_filters.q }}">
+                        <input type="hidden" name="subject" value="{{ current_filters.subject }}">
+                        <input type="hidden" name="city" value="{{ current_filters.city }}">
+                        <input type="hidden" name="teaching_mode" value="{{ current_filters.teaching_mode }}">
+                        <input type="hidden" name="min_fee" value="{{ current_filters.min_fee }}">
+                        <input type="hidden" name="max_fee" value="{{ current_filters.max_fee }}">
+                        <input type="hidden" name="min_exp" value="{{ current_filters.min_exp }}">
+                        <input type="hidden" name="language" value="{{ current_filters.language }}">
+                        <input type="hidden" name="student_level" value="{{ current_filters.student_level }}">
+
+                        <select name="sort_by" class="form-select form-select-sm auto-submit-filter" style="width: auto;">
+                            <option value="exp_desc" {% if current_filters.sort_by == 'exp_desc' %}selected{% endif %}>Most Experienced</option>
+                            <option value="fee_asc" {% if current_filters.sort_by == 'fee_asc' %}selected{% endif %}>Lowest Fee First</option>
+                            <option value="fee_desc" {% if current_filters.sort_by == 'fee_desc' %}selected{% endif %}>Highest Fee First</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tutor Cards Grid -->
+            {% if tutors %}
+                <div class="row g-3">
+                    {% for profile in tutors %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="tutor-card">
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <div class="avatar-circle">
+                                    {{ profile.user.full_name[:2].upper() }}
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h3 class="h6 mb-0 text-truncate fw-bold">{{ profile.user.full_name }}</h3>
+                                    <div class="text-secondary small text-truncate"><i class="bi bi-geo-alt me-1"></i>{{ profile.user.city }}</div>
+                                    <div class="mt-1 d-flex flex-wrap gap-1">
+                                        <span class="lb-badge badge-exp">{{ profile.experience_years }} yrs</span>
+                                        <span class="lb-badge badge-mode">{{ profile.teaching_mode }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="fw-medium text-dark small mb-2 text-truncate" title="{{ profile.headline }}">
+                                {{ profile.headline }}
+                            </div>
+
+                            <p class="text-secondary small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ profile.biography }}
+                            </p>
+
+                            <div class="mb-3">
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for subj in profile.subjects[:3] %}
+                                        <span class="lb-badge">{{ subj.name }}</span>
+                                    {% endfor %}
+                                    {% if profile.subjects|length > 3 %}
+                                        <span class="lb-badge text-muted">+{{ profile.subjects|length - 3 }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                                <div>
+                                    <span class="fs-5 fw-bold text-primary">₹{{ profile.hourly_fee }}</span>
+                                    <span class="text-secondary small">/hr</span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('tutor_profile', tutor_id=profile.id) }}" class="btn btn-outline-custom btn-sm">
+                                        Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if pagination.pages > 1 %}
+                <nav class="mt-5" aria-label="Tutor pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('tutors', page=pagination.prev_num, **current_filters) }}">&laquo; Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+                        {% endif %}
+
+                        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if p %}
+                                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('tutors', page=p, **current_filters) }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('tutors', page=pagination.next_num, **current_filters) }}">Next &raquo;</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="lb-card p-5 text-center">
+                    <i class="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+                    <h2 class="h5 mb-2">No Tutors Match Your Current Filters</h2>
+                    <p class="text-secondary small mb-4">Try clearing some filter criteria, broadening your subject keywords, or checking alternate locations.</p>
+                    <a href="{{ url_for('tutors') }}" class="btn btn-primary-custom btn-sm">
+                        Clear All Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

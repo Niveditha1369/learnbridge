@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block title %}LearnBridge – Connect with the Right Tutor. Learn with Confidence.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <span class="lb-badge mb-3"><i class="bi bi-patch-check-fill me-1 text-primary"></i> Trusted Tutoring Marketplace</span>
+                <h1 class="hero-title">Find the Right Tutor for Every Learning Goal</h1>
+                <p class="hero-subtitle">
+                    Explore experienced tutors for academic subjects, competitive examinations, languages, coding, and professional skills.
+                </p>
+
+                <!-- Prominent Search Form -->
+                <div class="hero-search-card">
+                    <form action="{{ url_for('tutors') }}" method="GET" class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Subject or Skill</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-book"></i></span>
+                                <input type="text" name="subject" class="form-control border-start-0 ps-0" placeholder="e.g. Mathematics, Python">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Location / City</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" name="city" class="form-control border-start-0 ps-0" placeholder="e.g. Chennai">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Mode Preference</label>
+                            <select name="teaching_mode" class="form-select">
+                                <option value="Any">Any Mode</option>
+                                <option value="Online">Online Only</option>
+                                <option value="In-Person">In-Person</option>
+                                <option value="Both">Online or In-Person</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary-custom w-100 py-2">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Quick Action Links -->
+                <div class="d-flex flex-wrap gap-3 mt-4 pt-2">
+                    <a href="{{ url_for('tutors') }}" class="btn btn-outline-custom">
+                        <i class="bi bi-compass me-1"></i> Find a Tutor
+                    </a>
+                    <a href="{{ url_for('find_tuition') }}" class="btn btn-sage">
+                        <i class="bi bi-pencil-square me-1"></i> Post a Tuition Requirement
+                    </a>
+                    <a href="{{ url_for('become_tutor') }}" class="btn btn-outline-custom">
+                        <i class="bi bi-person-workspace me-1"></i> Become a Tutor
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-box shadow-sm mb-3">
+                            <div class="stat-number">{{ stats.tutors }}+</div>
+                            <div class="stat-label">Verified Tutors</div>
+                        </div>
+                        <div class="stat-box shadow-sm">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Direct Connection</div>
+                        </div>
+                    </div>
+                    <div class="col-6 mt-4">
+                        <div class="stat-box shadow-sm mb-3">
+                            <div class="stat-number">{{ stats.subjects }}+</div>
+                            <div class="stat-label">Subject Areas</div>
+                        </div>
+                        <div class="stat-box shadow-sm">
+                            <div class="stat-number">₹0</div>
+                            <div class="stat-label">Student Commission</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Subject Categories -->
+<section class="py-5" id="popular-subjects">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+            <div>
+                <span class="lb-badge mb-2">Subject Directory</span>
+                <h2 class="h3 mb-1">Popular Subject Categories</h2>
+                <p class="text-secondary small mb-0">Browse specialized educators across academic levels, technical tools, and languages.</p>
+            </div>
+            <a href="{{ url_for('tutors') }}" class="btn btn-link text-primary p-0 mt-2 mt-md-0 fw-medium">
+                View all subjects <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for subj in popular_subjects %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <a href="{{ url_for('tutors', subject=subj.name) }}" class="category-card">
+                    <div class="avatar-circle" style="width: 40px; height: 40px; font-size: 1rem;">
+                        <i class="bi bi-book-half"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">{{ subj.name }}</div>
+                        <div class="text-secondary small">{{ subj.category }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Tutors Section -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+            <div>
+                <span class="lb-badge mb-2">Expert Educators</span>
+                <h2 class="h3 mb-1">Featured Tutors Ready to Teach</h2>
+                <p class="text-secondary small mb-0">Connect directly with vetted instructors tailored to your curriculum and pacing.</p>
+            </div>
+            <a href="{{ url_for('tutors') }}" class="btn btn-outline-custom mt-2 mt-md-0">
+                Explore All Tutors <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for profile in featured_tutors %}
+            <div class="col-lg-4 col-md-6">
+                <div class="tutor-card">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="avatar-circle">
+                            {{ profile.user.full_name[:2].upper() }}
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <h3 class="h5 mb-0 text-truncate">{{ profile.user.full_name }}</h3>
+                            <div class="text-secondary small text-truncate"><i class="bi bi-geo-alt me-1"></i>{{ profile.user.city }}</div>
+                            <div class="mt-1 d-flex flex-wrap gap-1">
+                                <span class="lb-badge badge-exp">{{ profile.experience_years }} yrs exp</span>
+                                <span class="lb-badge badge-mode">{{ profile.teaching_mode }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="fw-medium text-dark small mb-2 text-truncate" title="{{ profile.headline }}">
+                        {{ profile.headline }}
+                    </p>
+                    
+                    <p class="text-secondary small mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ profile.biography }}
+                    </p>
+
+                    <div class="mb-3">
+                        <div class="text-muted small mb-1">Subjects taught:</div>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for subj in profile.subjects[:3] %}
+                                <span class="lb-badge">{{ subj.name }}</span>
+                            {% endfor %}
+                            {% if profile.subjects|length > 3 %}
+                                <span class="lb-badge text-muted">+{{ profile.subjects|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+                        <div>
+                            <span class="fs-5 fw-bold text-primary">₹{{ profile.hourly_fee }}</span>
+                            <span class="text-secondary small"> / hr</span>
+                        </div>
+                        <a href="{{ url_for('tutor_profile', tutor_id=profile.id) }}" class="btn btn-primary-custom btn-sm">
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5" id="how-it-works">
+    <div class="container">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="lb-badge mb-2">Simple & Transparent</span>
+            <h2 class="h2">How LearnBridge Works</h2>
+            <p class="text-secondary">A straightforward, secure pathway designed for learners to find guidance and educators to share knowledge.</p>
+        </div>
+
+        <div class="row g-5">
+            <!-- For Students -->
+            <div class="col-lg-6">
+                <div class="p-4 bg-white rounded-3 border h-100 shadow-sm">
+                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
+                        <i class="bi bi-mortarboard-fill fs-3 text-primary"></i>
+                        <h3 class="h4 mb-0">For Students & Parents</h3>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <div class="step-number">1</div>
+                            <h4 class="h6 fw-bold">Search for Tutors</h4>
+                            <p class="text-secondary small">Filter by specific subject, syllabus, location, budget, and teaching mode.</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="step-number">2</div>
+                            <h4 class="h6 fw-bold">Compare Profiles</h4>
+                            <p class="text-secondary small">Evaluate detailed qualifications, teaching experience, and hourly pricing in INR.</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="step-number">3</div>
+                            <h4 class="h6 fw-bold">Send Tuition Request</h4>
+                            <p class="text-secondary small">Submit your target level, schedule preference, and message directly to the tutor.</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="step-number">4</div>
+                            <h4 class="h6 fw-bold">Coordinate Lessons</h4>
+                            <p class="text-secondary small">Once the tutor accepts, finalize timings and begin lessons with confidence.</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-top">
+                        <a href="{{ url_for('find_tuition') }}" class="btn btn-sage w-100">Post a Requirement for Free</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- For Tutors -->
+            <div class="col-lg-6">
+                <div class="p-4 bg-white rounded-3 border h-100 shadow-sm">
+                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
+                        <i class="bi bi-person-video3 fs-3" style="color: var(--muted-sage);"></i>
+                        <h3 class="h4 mb-0">For Dedicated Tutors</h3>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <div class="step-number" style="background-color: var(--muted-sage);">1</div>
+                            <h4 class="h6 fw-bold">Create Tutor Account</h4>
+                            <p class="text-secondary small">Sign up with your credentials, contact city, and teaching subjects.</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="step-number" style="background-color: var(--muted-sage);">2</div>
+                            <h4 class="h6 fw-bold">Complete Your Profile</h4>
+                            <p class="text-secondary small">Highlight your degrees, teaching history, languages, and hourly fees.</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="step-number" style="background-color: var(--muted-sage);">3</div>
+                            <h4 class="h6 fw-bold">Receive Enquiries</h4>
+                            <p class="text-secondary small">Get direct tuition requests from motivated students matching your skills.</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="step-number" style="background-color: var(--muted-sage);">4</div>
+                            <h4 class="h6 fw-bold">Accept & Teach</h4>
+                            <p class="text-secondary small">Review student details, accept requests, and schedule classes on your terms.</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-top">
+                        <a href="{{ url_for('become_tutor') }}" class="btn btn-primary-custom w-100">Join as a Tutor Today</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Student Need Tuition CTA & Tutor Join CTA -->
+<section class="py-5 bg-white border-top">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="p-4 rounded-3" style="background-color: var(--soft-highlight); border: 1px solid #d5e5e7;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-pencil-fill text-primary fs-4"></i>
+                        <h3 class="h5 mb-0">Can't Find an Exact Match?</h3>
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        Post your specific tuition requirement with syllabus details and schedule. Experienced tutors will review your requirement and reach out directly.
+                    </p>
+                    <a href="{{ url_for('find_tuition') }}" class="btn btn-primary-custom btn-sm">
+                        Post Requirement Now
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6" id="tutors-join">
+                <div class="p-4 rounded-3" style="background-color: #f7faf8; border: 1px solid #d9e9e2;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-award-fill text-success fs-4"></i>
+                        <h3 class="h5 mb-0">Are You an Experienced Educator?</h3>
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        Expand your reach across India and globally. Set your own hourly rate, select online or offline modes, and manage enquiries without intermediary commission.
+                    </p>
+                    <a href="{{ url_for('become_tutor') }}" class="btn btn-sage btn-sm">
+                        Register as an Instructor
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="lb-badge mb-2">Frequently Asked Questions</span>
+            <h2 class="h3">Everything You Need to Know</h2>
+            <p class="text-secondary small">Clear answers about finding tutors and teaching on LearnBridge.</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="learnbridgeFAQ">
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                Is LearnBridge free for students to browse and enquire?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#learnbridgeFAQ">
+                            <div class="accordion-body text-secondary small">
+                                Yes. Students can freely browse tutor profiles, apply filters by subject or location, and submit tuition enquiries without paying platform search fees.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                How are tutor qualifications verified?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#learnbridgeFAQ">
+                            <div class="accordion-body text-secondary small">
+                                Tutors enter their self-reported degrees, credentials, and work history. LearnBridge clearly distinguishes self-reported information so students can ask for documentation before committing to tuition schedules.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Can tutors teach both online and in-person?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#learnbridgeFAQ">
+                            <div class="accordion-body text-secondary small">
+                                Absolutely! When creating your profile, you can select "Online", "In-Person", or "Both". Students can filter directory results based on their preference.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item mb-2 border rounded">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                What happens when a tuition request is accepted?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#learnbridgeFAQ">
+                            <div class="accordion-body text-secondary small">
+                                Accepting an enquiry signals mutual interest and intent to coordinate lessons. Students and tutors then communicate directly regarding trial classes and session timings.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

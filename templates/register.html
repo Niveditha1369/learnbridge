@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Registration – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="lb-card p-4 shadow-sm">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle mx-auto mb-2" style="width: 48px; height: 48px;">
+                        <i class="bi bi-mortarboard-fill text-primary fs-4"></i>
+                    </div>
+                    <h1 class="h4 fw-bold mb-1">Create Student Account</h1>
+                    <p class="text-secondary small mb-0">Join thousands of students connecting with expert tutors</p>
+                </div>
+
+                <form action="{{ url_for('register') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="e.g. Priya Sharma" value="{{ full_name if full_name else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" name="email" class="form-control" placeholder="priya@example.com" value="{{ email if email else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">City / Location *</label>
+                        <input type="text" name="city" class="form-control" placeholder="e.g. Chennai, Bengaluru, Mumbai" value="{{ city if city else '' }}" required>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Password *</label>
+                            <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Confirm Password *</label>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="Re-type password" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-primary-custom py-2">
+                            <i class="bi bi-person-check-fill me-1"></i> Register as Student
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center pt-3 border-top">
+                    <p class="text-secondary small mb-1">
+                        Already have an account? <a href="{{ url_for('login') }}" class="fw-semibold">Sign in here</a>
+                    </p>
+                    <p class="text-secondary small mb-0">
+                        Want to teach? <a href="{{ url_for('become_tutor') }}" class="fw-semibold">Register as a Tutor</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Tuition / Post Requirement – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Tuition Requirements</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1">Student Tuition Requirements</h1>
+            <p class="text-secondary small mb-0">Browse open learning requests from students seeking targeted academic coaching.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            {% if current_user and current_user.role == 'student' %}
+                <a href="#post-form" class="btn btn-primary-custom">
+                    <i class="bi bi-plus-lg me-1"></i> Post New Requirement
+                </a>
+            {% elif not current_user %}
+                <a href="{{ url_for('login', next=request.path) }}" class="btn btn-primary-custom">
+                    <i class="bi bi-pencil-square me-1"></i> Login to Post
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filter Bar for Open Requirements -->
+    <div class="lb-card p-3 mb-4">
+        <form action="{{ url_for('find_tuition') }}" method="GET" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-book"></i></span>
+                    <input type="text" name="subject" class="form-control" placeholder="Filter by subject..." value="{{ selected_subject }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-geo-alt"></i></span>
+                    <input type="text" name="location" class="form-control" placeholder="City or location..." value="{{ selected_location }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="mode" class="form-select form-select-sm">
+                    <option value="Any" {% if selected_mode == 'Any' or not selected_mode %}selected{% endif %}>Any Mode</option>
+                    <option value="Online" {% if selected_mode == 'Online' %}selected{% endif %}>Online Only</option>
+                    <option value="In-Person" {% if selected_mode == 'In-Person' %}selected{% endif %}>In-Person</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-custom btn-sm w-100">
+                    <i class="bi bi-filter"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        <!-- Open Requirements List -->
+        <div class="col-lg-7">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Open Requests ({{ pagination.total }})</h2>
+                <span class="text-secondary small">Direct student posts</span>
+            </div>
+
+            {% if requirements %}
+                <div class="d-flex flex-column gap-3">
+                    {% for req in requirements %}
+                    <div class="lb-card p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h3 class="h6 fw-bold mb-1 text-primary">
+                                    {{ req.subject.name if req.subject else 'General Tuition' }}
+                                </h3>
+                                <div class="text-secondary small">
+                                    <i class="bi bi-person-circle me-1"></i>{{ req.student.full_name }} &bull; 
+                                    <i class="bi bi-geo-alt me-1"></i>{{ req.location }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">₹{{ req.budget }} / hr</span>
+                                <div class="text-muted small mt-1">{{ req.created_at.strftime('%b %d, %Y') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 my-2">
+                            <span class="lb-badge"><i class="bi bi-mortarboard me-1"></i>{{ req.student_level }}</span>
+                            <span class="lb-badge badge-mode"><i class="bi bi-laptop me-1"></i>{{ req.teaching_mode }}</span>
+                            <span class="lb-badge"><i class="bi bi-calendar3 me-1"></i>{{ req.preferred_schedule }}</span>
+                        </div>
+
+                        <p class="text-secondary small mb-3">
+                            {{ req.description }}
+                        </p>
+
+                        <!-- Response / Action area -->
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="small text-muted">
+                                <i class="bi bi-chat-left-dots me-1"></i>{{ req.responses.count() }} response(s) submitted
+                            </span>
+
+                            {% if current_user and current_user.role == 'tutor' %}
+                                <button type="button" class="btn btn-sage btn-sm" data-bs-toggle="collapse" data-bs-target="#respondCollapse-{{ req.id }}" aria-expanded="false">
+                                    <i class="bi bi-reply-fill me-1"></i> Respond as Tutor
+                                </button>
+                            {% elif not current_user %}
+                                <a href="{{ url_for('login') }}" class="btn btn-outline-custom btn-sm">
+                                    Sign In to Respond
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <!-- Collapse Form for Tutor Response -->
+                        {% if current_user and current_user.role == 'tutor' %}
+                        <div class="collapse mt-3" id="respondCollapse-{{ req.id }}">
+                            <div class="p-3 bg-light rounded border">
+                                <h4 class="h6 fw-bold mb-2">Send Proposal to Student</h4>
+                                <form action="{{ url_for('respond_to_requirement', req_id=req.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-sm-6">
+                                            <label class="form-label small">Your Proposed Fee (₹/hr)</label>
+                                            <input type="number" name="proposed_fee" class="form-control form-control-sm" value="{{ current_user.tutor_profile.hourly_fee if current_user.tutor_profile else req.budget }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small">Your Proposal & Teaching Methodology</label>
+                                        <textarea name="message" class="form-control form-control-sm" rows="3" placeholder="Explain your experience in this subject and proposed timetable..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary-custom btn-sm">
+                                        <i class="bi bi-send me-1"></i> Submit Proposal
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if pagination.pages > 1 %}
+                <nav class="mt-4" aria-label="Tuition requirements pagination">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        {% if pagination.has_prev %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('find_tuition', page=pagination.prev_num, subject=selected_subject, location=selected_location, mode=selected_mode) }}">&laquo; Prev</a></li>
+                        {% endif %}
+                        {% for p in pagination.iter_pages() %}
+                            {% if p %}
+                                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('find_tuition', page=p, subject=selected_subject, location=selected_location, mode=selected_mode) }}">{{ p }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if pagination.has_next %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('find_tuition', page=pagination.next_num, subject=selected_subject, location=selected_location, mode=selected_mode) }}">Next &raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="lb-card p-4 text-center">
+                    <i class="bi bi-inbox fs-2 text-muted mb-2 d-block"></i>
+                    <h3 class="h6">No open requirements found</h3>
+                    <p class="text-secondary small mb-0">Be the first to post a tuition requirement using the form!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Post a Requirement Form Column -->
+        <div class="col-lg-5" id="post-form">
+            <div class="lb-card p-4 sticky-top" style="top: 85px;">
+                <h2 class="h5 mb-1"><i class="bi bi-pencil-square text-primary me-2"></i>Post a Tuition Requirement</h2>
+                <p class="text-secondary small mb-3">Tutors will review your requirement and submit proposals tailored to your needs.</p>
+
+                {% if current_user and current_user.role == 'student' %}
+                    <form action="{{ url_for('find_tuition') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Subject *</label>
+                            <select name="subject_id" class="form-select form-select-sm" required>
+                                <option value="">Select a Subject...</option>
+                                {% for subj in subjects %}
+                                    <option value="{{ subj.id }}">{{ subj.name }} ({{ subj.category }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Student Level *</label>
+                            <select name="student_level" class="form-select form-select-sm" required>
+                                <option value="Primary School">Primary School</option>
+                                <option value="Middle School">Middle School</option>
+                                <option value="High School (Grade 9-10)">High School (Grade 9-10)</option>
+                                <option value="Higher Secondary (Grade 11-12)" selected>Higher Secondary (Grade 11-12)</option>
+                                <option value="College / University">College / University</option>
+                                <option value="Competitive Exam">Competitive Exam</option>
+                                <option value="Adult / Professional">Adult / Professional</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Mode *</label>
+                                <select name="teaching_mode" class="form-select form-select-sm" required>
+                                    <option value="Online">Online Only</option>
+                                    <option value="In-Person">In-Person</option>
+                                    <option value="Both">Either Mode</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">City / Area *</label>
+                                <input type="text" name="location" class="form-control form-control-sm" value="{{ current_user.city }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Budget (₹ / hr) *</label>
+                                <input type="number" name="budget" class="form-control form-control-sm" placeholder="e.g. 800" min="100" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Schedule *</label>
+                                <input type="text" name="preferred_schedule" class="form-control form-control-sm" placeholder="e.g. Weekday evenings" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Detailed Needs & Learning Goals *</label>
+                            <textarea name="description" class="form-control form-control-sm" rows="4" placeholder="Detail your syllabus (e.g. CBSE / ICSE / University), specific chapters, or exam goals..." required></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary-custom btn-sm">
+                                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Publish Requirement
+                            </button>
+                        </div>
+                    </form>
+                {% elif current_user and current_user.role == 'tutor' %}
+                    <div class="alert alert-info small mb-0">
+                        <i class="bi bi-info-circle me-1"></i> You are signed in with a Tutor account. Tutors can browse and submit proposals on the left.
+                    </div>
+                {% else %}
+                    <div class="p-3 bg-light rounded text-center">
+                        <i class="bi bi-person-lock fs-2 text-secondary mb-2 d-block"></i>
+                        <h3 class="h6 mb-2">Student Account Required</h3>
+                        <p class="text-secondary small mb-3">Sign in or create a student account to publish learning requirements.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ url_for('login', next=request.path) }}" class="btn btn-outline-custom btn-sm">Sign In</a>
+                            <a href="{{ url_for('register') }}" class="btn btn-primary-custom btn-sm">Sign Up</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Tutor Dashboard – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-1">Tutor Dashboard – {{ user.full_name }}</h1>
+            <p class="text-secondary small mb-0"><i class="bi bi-geo-alt me-1"></i>{{ user.city }} &bull; Rate: ₹{{ profile.hourly_fee }}/hr &bull; {{ profile.experience_years }} yrs exp</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('tutor_profile', tutor_id=profile.id) }}" class="btn btn-outline-custom btn-sm">
+                <i class="bi bi-eye me-1"></i> View Public Profile
+            </a>
+            <a href="{{ url_for('find_tuition') }}" class="btn btn-sage btn-sm">
+                <i class="bi bi-journal-text me-1"></i> Browse Tuition Requests
+            </a>
+        </div>
+    </div>
+
+    <!-- Profile Completion Bar -->
+    <div class="lb-card p-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-semibold text-dark"><i class="bi bi-shield-check text-primary me-1"></i> Profile Completeness</span>
+            <span class="small fw-bold text-primary">{{ completion_score }}%</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+            <div class="progress-bar" role="progressbar" style="width: {{ completion_score }}%; background-color: var(--primary-blue);" aria-valuenow="{{ completion_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+
+    <!-- Stats Summary Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-box">
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-label">Total Student Inquiries</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-box">
+                <div class="stat-number text-warning">{{ stats.pending }}</div>
+                <div class="stat-label">Pending Inquiries</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-box">
+                <div class="stat-number text-success">{{ stats.accepted }}</div>
+                <div class="stat-label">Accepted Inquiries</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-box">
+                <div class="stat-number text-secondary">{{ stats.rejected }}</div>
+                <div class="stat-label">Declined Inquiries</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Incoming Tuition Inquiries (Action Area) -->
+        <div class="col-lg-7">
+            <div class="lb-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h2 class="h5 mb-0"><i class="bi bi-inbox-fill text-primary me-2"></i>Incoming Student Requests</h2>
+                    <span class="text-secondary small">Direct student applications</span>
+                </div>
+
+                {% if requests %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for r in requests %}
+                        <div class="p-3 bg-light rounded border">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h3 class="h6 fw-bold mb-0 text-dark">{{ r.student.full_name }}</h3>
+                                    <div class="text-secondary small">
+                                        <i class="bi bi-geo-alt me-1"></i>{{ r.student.city }} &bull;
+                                        Subject: <strong>{{ r.subject.name if r.subject else 'General' }}</strong>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary-subtle text-primary border">Budget: ₹{{ r.budget }}/hr</span>
+                                    <div class="text-muted small mt-1">{{ r.created_at.strftime('%b %d, %Y') }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 my-2">
+                                <span class="lb-badge">{{ r.student_level }}</span>
+                                <span class="lb-badge badge-mode">{{ r.teaching_mode }}</span>
+                                <span class="lb-badge"><i class="bi bi-clock me-1"></i>{{ r.preferred_schedule }}</span>
+                            </div>
+
+                            <p class="text-secondary small mb-3 p-2 bg-white rounded border">
+                                "{{ r.message }}"
+                            </p>
+
+                            <!-- Status & Action Buttons -->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div>
+                                    {% if r.status == 'pending' %}
+                                        <span class="lb-badge badge-pending">Awaiting Your Decision</span>
+                                    {% elif r.status == 'accepted' %}
+                                        <span class="lb-badge badge-accepted"><i class="bi bi-check-circle-fill me-1"></i>Accepted</span>
+                                    {% elif r.status == 'rejected' %}
+                                        <span class="lb-badge badge-rejected">Declined</span>
+                                    {% elif r.status == 'cancelled' %}
+                                        <span class="lb-badge badge-cancelled">Cancelled by Student</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if r.status == 'pending' %}
+                                <div class="d-flex gap-2">
+                                    <form action="{{ url_for('update_tutor_request_status', req_id=r.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <input type="hidden" name="status" value="accepted">
+                                        <button type="submit" class="btn btn-success btn-sm py-1 px-3">
+                                            <i class="bi bi-check-lg me-1"></i> Accept
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('update_tutor_request_status', req_id=r.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <input type="hidden" name="status" value="rejected">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-3">
+                                            <i class="bi bi-x-lg me-1"></i> Decline
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-4 text-center text-secondary">
+                        <i class="bi bi-chat-square-text fs-2 text-muted mb-2 d-block"></i>
+                        <p class="small mb-0">No incoming tuition requests yet. Make sure your profile has comprehensive subjects and competitive pricing.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Open Requirements to Browse -->
+            <div class="lb-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h2 class="h5 mb-0"><i class="bi bi-search text-primary me-2"></i>Open Student Requirements Feed</h2>
+                    <a href="{{ url_for('find_tuition') }}" class="btn btn-link btn-sm text-primary p-0">View All</a>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    {% for req in open_requirements %}
+                    <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold text-dark">{{ req.subject.name if req.subject else 'General' }} &bull; <span class="text-secondary small">{{ req.location }}</span></div>
+                            <div class="text-secondary small">{{ req.description[:75] }}...</div>
+                        </div>
+                        <div class="text-end text-nowrap ms-3">
+                            <span class="badge bg-success-subtle text-success border">₹{{ req.budget }}/hr</span>
+                            <div class="mt-1">
+                                <a href="{{ url_for('find_tuition') }}" class="btn btn-sage btn-sm py-0 px-2" style="font-size: 0.78rem;">Respond</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Tutor Profile Column -->
+        <div class="col-lg-5">
+            <div class="lb-card p-4">
+                <h2 class="h5 mb-3 border-bottom pb-2"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Tutor Profile</h2>
+
+                <form action="{{ url_for('update_tutor_profile') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">City / Location</label>
+                        <input type="text" name="city" class="form-control form-control-sm" value="{{ user.city }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Professional Headline *</label>
+                        <input type="text" name="headline" class="form-control form-control-sm" value="{{ profile.headline }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Biography / About You *</label>
+                        <textarea name="biography" class="form-control form-control-sm" rows="3" required>{{ profile.biography }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Qualifications & Degrees</label>
+                        <input type="text" name="qualifications" class="form-control form-control-sm" value="{{ profile.qualifications }}" required>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Experience (Yrs)</label>
+                            <input type="number" name="experience_years" class="form-control form-control-sm" value="{{ profile.experience_years }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Hourly Fee (₹)</label>
+                            <input type="number" name="hourly_fee" class="form-control form-control-sm" value="{{ profile.hourly_fee }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Teaching Mode</label>
+                            <select name="teaching_mode" class="form-select form-select-sm">
+                                <option value="Online" {% if profile.teaching_mode == 'Online' %}selected{% endif %}>Online Only</option>
+                                <option value="In-Person" {% if profile.teaching_mode == 'In-Person' %}selected{% endif %}>In-Person Only</option>
+                                <option value="Both" {% if profile.teaching_mode == 'Both' %}selected{% endif %}>Both Online & Offline</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Languages</label>
+                            <input type="text" name="languages" class="form-control form-control-sm" value="{{ profile.languages }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Student Target Levels</label>
+                        <input type="text" name="student_levels" class="form-control form-control-sm" value="{{ profile.student_levels }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Weekly Availability Schedule</label>
+                        <input type="text" name="availability" class="form-control form-control-sm" value="{{ profile.availability }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-block">Subjects Taught</label>
+                        <div class="p-2 bg-light rounded border" style="max-height: 150px; overflow-y: auto;">
+                            {% set tutor_subj_ids = profile.subjects | map(attribute='id') | list %}
+                            <div class="row g-1">
+                                {% for subj in all_subjects %}
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="subjects" value="{{ subj.id }}" id="edit-subj-{{ subj.id }}" {% if subj.id in tutor_subj_ids %}checked{% endif %}>
+                                        <label class="form-check-label small" for="edit-subj-{{ subj.id }}">
+                                            {{ subj.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom btn-sm w-100">
+                        <i class="bi bi-save me-1"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

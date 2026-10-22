@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="lb-card p-4 p-md-5 mb-4">
+                <span class="lb-badge mb-3"><i class="bi bi-info-circle-fill me-1"></i> Our Mission</span>
+                <h1 class="h2 fw-bold mb-3">Connecting Learners with the Right Guidance</h1>
+                <p class="lead text-secondary mb-4">
+                    LearnBridge is an open, transparent education marketplace founded on a single conviction: every learner deserves access to experienced tutors who match their curriculum, language, and pace.
+                </p>
+
+                <h2 class="h5 fw-bold text-dark mt-4 mb-2">Our Philosophy</h2>
+                <p class="text-secondary">
+                    Unlike traditional middlemen agencies with opaque commissions and restricted communication, LearnBridge provides an open bridge. Students search directly, compare self-reported qualifications, review transparent hourly pricing, and send tuition enquiries with no hidden platform markups.
+                </p>
+
+                <h2 class="h5 fw-bold text-dark mt-4 mb-2">Key Principles</h2>
+                <div class="row g-3 my-2">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h3 class="h6 fw-bold"><i class="bi bi-shield-check text-primary me-2"></i>Transparent Marketplace</h3>
+                            <p class="small text-secondary mb-0">Tutors establish their own rates and schedule. Students evaluate background profiles and direct proposals openly.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h3 class="h6 fw-bold"><i class="bi bi-person-check text-primary me-2"></i>Privacy & Ownership</h3>
+                            <p class="small text-secondary mb-0">Private phone numbers and sensitive contact details are never exposed publicly or indexed by search bots.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h3 class="h6 fw-bold"><i class="bi bi-laptop text-primary me-2"></i>Flexible Modalities</h3>
+                            <p class="small text-secondary mb-0">Full support for online video classes, local home visits, or hybrid learning schedules across India and worldwide.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h3 class="h6 fw-bold"><i class="bi bi-mortarboard text-primary me-2"></i>Diverse Disciplines</h3>
+                            <p class="small text-secondary mb-0">From school math and regional languages like Tamil to Python programming, data analytics, and competitive entrance coaching.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top mt-4 d-flex gap-3">
+                    <a href="{{ url_for('tutors') }}" class="btn btn-primary-custom">Find a Tutor</a>
+                    <a href="{{ url_for('become_tutor') }}" class="btn btn-outline-custom">Teach on LearnBridge</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Become a Tutor – LearnBridge{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="lb-card p-4 p-md-5 shadow-sm">
+                <div class="text-center mb-4">
+                    <span class="lb-badge mb-2"><i class="bi bi-briefcase-fill me-1"></i> Educator Onboarding</span>
+                    <h1 class="h3 fw-bold mb-1">Create Your Tutor Profile</h1>
+                    <p class="text-secondary small mb-0">Share your expertise, set your own hourly rate, and connect directly with students seeking tuition.</p>
+                </div>
+
+                <form action="{{ url_for('become_tutor') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                    <!-- Step 1: Account Essentials -->
+                    <h2 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">1. Account Credentials</h2>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" name="full_name" class="form-control" placeholder="e.g. Dr. Ramesh Sundaram" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" name="email" class="form-control" placeholder="ramesh@example.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password *</label>
+                            <input type="password" name="password" class="form-control" placeholder="Min 6 characters" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm Password *</label>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="Re-type password" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">City / Primary Location *</label>
+                            <input type="text" name="city" class="form-control" placeholder="e.g. Chennai, Bangalore, Hyderabad" required>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Teaching Profile & Bio -->
+                    <h2 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">2. Professional Profile & Experience</h2>
+                    <div class="mb-3">
+                        <label class="form-label">Professional Headline *</label>
+                        <input type="text" name="headline" class="form-control" placeholder="e.g. CBSE & JEE Mathematics Faculty | 8+ Years Coaching Experience" required>
+                        <div class="form-text small">A concise headline displayed on tutor search cards.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">About You / Biography *</label>
+                        <textarea name="biography" class="form-control" rows="4" placeholder="Describe your teaching philosophy, methodology, notable student accomplishments, and what makes your classes unique..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Degrees & Qualifications *</label>
+                        <input type="text" name="qualifications" class="form-control" placeholder="e.g. M.Sc. Mathematics (Anna University), B.Ed." required>
+                        <div class="form-text small text-muted">
+                            Note: All qualifications entered are self-reported. Please accurately represent your academic history.
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Teaching Experience (Years) *</label>
+                            <input type="number" name="experience_years" class="form-control" min="0" max="60" value="3" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Hourly Fee (INR ₹) *</label>
+                            <input type="number" name="hourly_fee" class="form-control" min="100" step="50" value="800" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Teaching Mode *</label>
+                            <select name="teaching_mode" class="form-select" required>
+                                <option value="Online">Online Only</option>
+                                <option value="In-Person">In-Person Only</option>
+                                <option value="Both" selected>Both Online & In-Person</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Subjects & Target Students -->
+                    <h2 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">3. Subjects & Availability</h2>
+                    <div class="mb-3">
+                        <label class="form-label d-block">Select Subjects You Teach *</label>
+                        <div class="p-3 bg-light rounded border" style="max-height: 180px; overflow-y: auto;">
+                            <div class="row g-2">
+                                {% for subj in subjects %}
+                                <div class="col-md-6 col-sm-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="subjects" value="{{ subj.id }}" id="subj-{{ subj.id }}">
+                                        <label class="form-check-label small" for="subj-{{ subj.id }}">
+                                            {{ subj.name }} <span class="text-muted">({{ subj.category }})</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="form-text small">Select all relevant subject disciplines you are prepared to teach.</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Languages Spoken *</label>
+                            <input type="text" name="languages" class="form-control" value="English, Tamil" placeholder="e.g. English, Hindi, Tamil" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Student Levels Coached *</label>
+                            <input type="text" name="student_levels" class="form-control" value="High School, Higher Secondary, College" placeholder="e.g. Middle School, High School, College" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Weekly Availability Schedule *</label>
+                            <input type="text" name="availability" class="form-control" value="Weekdays 5 PM - 9 PM, Weekends flexible" placeholder="e.g. Monday to Friday evenings, Saturday mornings" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary-custom py-2">
+                            <i class="bi bi-mortarboard-fill me-1"></i> Register Tutor Profile
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center pt-4 border-top mt-4">
+                    <p class="text-secondary small mb-0">
+                        Already registered as a tutor? <a href="{{ url_for('login') }}" class="fw-semibold">Sign in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

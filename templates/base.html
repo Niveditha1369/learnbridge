@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LearnBridge – Connect with the Right Tutor{% endblock %}</title>
+    <!-- Favicon SVG -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path fill='%23315B72' d='M4 22c4-8 12-8 12-8s8 0 12 8v2H4v-2z'/><circle cx='16' cy='10' r='4' fill='%2382A69A'/></svg>">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <svg class="brand-logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- LearnBridge original emblem: arch bridge uniting open book leaves -->
+                    <path d="M4 26C8 17 18 17 18 17C18 17 28 17 32 26" stroke="#315B72" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M18 17V7" stroke="#82A69A" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="18" cy="6" r="3.5" fill="#315B72"/>
+                    <path d="M10 13L18 8L26 13" stroke="#82A69A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Learn<span style="color: var(--muted-sage);">Bridge</span></span>
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-dark"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'tutors' %}active{% endif %}" href="{{ url_for('tutors') }}">
+                            <i class="bi bi-search me-1"></i> Find Tutors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'find_tuition' %}active{% endif %}" href="{{ url_for('find_tuition') }}">
+                            <i class="bi bi-journal-text me-1"></i> Find Tuition
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#popular-subjects">
+                            <i class="bi bi-grid me-1"></i> Subjects
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#how-it-works">
+                            <i class="bi bi-lightbulb me-1"></i> How It Works
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2">
+                    {% if current_user %}
+                        {% if current_user.role == 'student' %}
+                            <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-custom">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </a>
+                            <a href="{{ url_for('find_tuition') }}#post-form" class="btn btn-sage">
+                                <i class="bi bi-plus-circle me-1"></i> Post Requirement
+                            </a>
+                        {% elif current_user.role == 'tutor' %}
+                            <a href="{{ url_for('tutor_dashboard') }}" class="btn btn-outline-custom">
+                                <i class="bi bi-mortarboard me-1"></i> Tutor Dashboard
+                            </a>
+                        {% endif %}
+                        <form action="{{ url_for('logout') }}" method="POST" class="d-inline m-0">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-link text-secondary text-decoration-none p-2" title="Sign Out">
+                                <i class="bi bi-box-arrow-right fs-5"></i>
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{{ url_for('become_tutor') }}" class="btn btn-outline-custom">
+                            Become a Tutor
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-link text-secondary text-decoration-none px-3">
+                            Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-primary-custom">
+                            Sign Up
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center">
+                            {% if category == 'success' %}
+                                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                            {% elif category == 'danger' %}
+                                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            {% elif category == 'warning' %}
+                                <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Area -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-custom">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <svg class="brand-logo-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 26C8 17 18 17 18 17C18 17 28 17 32 26" stroke="#315B72" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M18 17V7" stroke="#82A69A" stroke-width="3" stroke-linecap="round"/>
+                            <circle cx="18" cy="6" r="3.5" fill="#315B72"/>
+                            <path d="M10 13L18 8L26 13" stroke="#82A69A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="fs-5 fw-bold text-dark">Learn<span style="color: var(--muted-sage);">Bridge</span></span>
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        "Connect with the right tutor. Learn with confidence."<br>
+                        LearnBridge is a trusted marketplace uniting dedicated tutors and motivated learners for academic excellence, language mastery, and career growth.
+                    </p>
+                    <div class="d-flex gap-3 text-secondary">
+                        <i class="bi bi-shield-check text-success fs-5"></i>
+                        <span class="small">Verified profiles and transparent tuition matching.</span>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <div class="footer-heading">For Students</div>
+                    <ul class="footer-links small">
+                        <li><a href="{{ url_for('tutors') }}">Find a Tutor</a></li>
+                        <li><a href="{{ url_for('find_tuition') }}">Post Tuition Need</a></li>
+                        <li><a href="{{ url_for('register') }}">Student Sign Up</a></li>
+                        <li><a href="{{ url_for('login') }}">Student Login</a></li>
+                        <li><a href="{{ url_for('index') }}#how-it-works">How LearnBridge Works</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <div class="footer-heading">For Tutors</div>
+                    <ul class="footer-links small">
+                        <li><a href="{{ url_for('become_tutor') }}">Become a Tutor</a></li>
+                        <li><a href="{{ url_for('find_tuition') }}">Browse Tuition Requests</a></li>
+                        <li><a href="{{ url_for('login') }}">Tutor Sign In</a></li>
+                        <li><a href="{{ url_for('index') }}#tutors-join">Why Teach with Us</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <div class="footer-heading">Popular Subjects</div>
+                    <ul class="footer-links small">
+                        <li><a href="{{ url_for('tutors', subject='Mathematics') }}">Mathematics</a></li>
+                        <li><a href="{{ url_for('tutors', subject='Physics') }}">Physics</a></li>
+                        <li><a href="{{ url_for('tutors', subject='Python Programming') }}">Python Coding</a></li>
+                        <li><a href="{{ url_for('tutors', subject='Spoken English') }}">Spoken English</a></li>
+                        <li><a href="{{ url_for('tutors', subject='Tamil') }}">Tamil Language</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <div class="footer-heading">Company & Legal</div>
+                    <ul class="footer-links small">
+                        <li><a href="{{ url_for('about') }}">About LearnBridge</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Support</a></li>
+                        <li><a href="{{ url_for('privacy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('terms') }}">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                <div>&copy; {{ now.year }} LearnBridge Education Inc. All rights reserved.</div>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('privacy') }}">Privacy</a>
+                    <span>&bull;</span>
+                    <a href="{{ url_for('terms') }}">Terms</a>
+                    <span>&bull;</span>
+                    <a href="{{ url_for('contact') }}">Support</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
