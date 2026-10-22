@@ -205,8 +205,27 @@ DEMO_STUDENTS = [
     }
 ]
 
+def apply_schema_migrations():
+    """Ensure newly added columns exist in the database without dropping tables."""
+    queries = [
+        "ALTER TABLE tutor_profiles ADD COLUMN IF NOT EXISTS upi_id VARCHAR(100)",
+        "ALTER TABLE tutor_profiles ADD COLUMN IF NOT EXISTS payment_instructions TEXT",
+        "ALTER TABLE tuition_requests ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'unpaid'",
+        "ALTER TABLE tuition_requests ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(100)",
+        "ALTER TABLE tuition_requests ADD COLUMN IF NOT EXISTS payment_notes TEXT",
+        "ALTER TABLE tuition_requests ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP",
+    ]
+    for q in queries:
+        try:
+            db.session.execute(db.text(q))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
 def seed_database():
     """Populates subjects, sample tutors, and sample requirements if not present."""
+    apply_schema_migrations()
+
     # 1. Seed Subjects
     subject_map = {}
     for name, category in DEFAULT_SUBJECTS:
@@ -249,6 +268,10 @@ def seed_database():
                 if s_name in subject_map:
                     profile.subjects.append(subject_map[s_name])
             db.session.add(profile)
+        elif user and user.tutor_profile and not user.tutor_profile.upi_id:
+            clean_name = user.full_name.lower().replace("dr. ", "").replace("prof. ", "").replace(" ", ".")
+            user.tutor_profile.upi_id = f"{clean_name}@okaxis"
+            user.tutor_profile.payment_instructions = "Pay via GPay, PhonePe, or Paytm UPI, then submit your transaction UTR reference below."
 
     db.session.commit()
 

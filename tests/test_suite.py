@@ -264,6 +264,40 @@ class TuitionRequestWorkflowTests(BaseTestCase):
         req_updated = db.session.get(TuitionRequest, req.id)
         self.assertEqual(req_updated.status, 'accepted')
 
+        # 3. Student submits payment proof
+        with self.client.session_transaction() as sess:
+            sess['user_id'] = self.student_user.id
+            sess['user_role'] = 'student'
+            sess['csrf_token'] = 'token123'
+
+        res_pay = self.client.post(f'/student/request/{req.id}/pay', data={
+            'csrf_token': 'token123',
+            'payment_reference': 'UTR1234567890',
+            'payment_notes': 'Paid via GPay'
+        }, follow_redirects=True)
+        self.assertEqual(res_pay.status_code, 200)
+        self.assertIn(b"Payment details submitted", res_pay.data)
+
+        req_paid = db.session.get(TuitionRequest, req.id)
+        self.assertEqual(req_paid.payment_status, 'paid_submitted')
+        self.assertEqual(req_paid.payment_reference, 'UTR1234567890')
+
+        # 4. Tutor confirms payment received
+        with self.client.session_transaction() as sess:
+            sess['user_id'] = self.tutor_user.id
+            sess['user_role'] = 'tutor'
+            sess['csrf_token'] = 'token123'
+
+        res_confirm = self.client.post(f'/tutor/request/{req.id}/confirm-payment', data={
+            'csrf_token': 'token123',
+            'action': 'confirm'
+        }, follow_redirects=True)
+        self.assertEqual(res_confirm.status_code, 200)
+        self.assertIn(b"Payment verified and confirmed", res_confirm.data)
+
+        req_confirmed = db.session.get(TuitionRequest, req.id)
+        self.assertEqual(req_confirmed.payment_status, 'payment_confirmed')
+
     def test_student_cancellation(self):
         req = TuitionRequest(
             student_id=self.student_user.id,

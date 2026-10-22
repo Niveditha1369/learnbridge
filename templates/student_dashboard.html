@@ -109,12 +109,87 @@
                                                 </button>
                                             </form>
                                         {% elif r.status == 'accepted' %}
-                                            <span class="text-success small fw-medium">Ready to Coordinate</span>
+                                            {% if r.payment_status == 'payment_confirmed' %}
+                                                <span class="badge bg-success-subtle text-success border p-1" style="font-size: 0.78rem;">
+                                                    <i class="bi bi-patch-check-fill me-1"></i> Paid & Booked
+                                                </span>
+                                            {% elif r.payment_status == 'paid_submitted' %}
+                                                <span class="badge bg-warning-subtle text-warning border p-1" style="font-size: 0.78rem;" title="Ref: {{ r.payment_reference }}">
+                                                    <i class="bi bi-hourglass-split me-1"></i> Verification Pending
+                                                </span>
+                                            {% else %}
+                                                <button type="button" class="btn btn-sage btn-sm py-1 px-2" data-bs-toggle="modal" data-bs-target="#payModal-{{ r.id }}" style="font-size: 0.8rem;">
+                                                    <i class="bi bi-qr-code me-1"></i> Pay via UPI
+                                                </button>
+                                            {% endif %}
                                         {% else %}
                                             <span class="text-muted small">-</span>
                                         {% endif %}
                                     </td>
                                 </tr>
+
+                                {% if r.status == 'accepted' %}
+                                <!-- Payment Modal for Request {{ r.id }} -->
+                                <div class="modal fade" id="payModal-{{ r.id }}" tabindex="-1" aria-labelledby="payModalLabel-{{ r.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title h6" id="payModalLabel-{{ r.id }}">
+                                                    <i class="bi bi-credit-card-2-front text-primary me-2"></i>Pay Tutor via UPI
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ url_for('student_submit_payment', req_id=r.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                                <div class="modal-body">
+                                                    <div class="p-3 bg-light rounded border mb-3">
+                                                        <div class="d-flex justify-content-between mb-1">
+                                                            <span class="text-secondary small">Tutor:</span>
+                                                            <strong class="text-dark">{{ r.tutor_profile.user.full_name }}</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span class="text-secondary small">Amount to Pay:</span>
+                                                            <span class="fs-5 fw-bold text-primary">₹{{ r.budget }}</span>
+                                                        </div>
+                                                        <hr class="my-2">
+                                                        <div class="mb-2">
+                                                            <label class="form-label small text-secondary mb-1">Tutor's UPI ID / GPay / PhonePe:</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="text" class="form-control fw-bold bg-white" value="{{ r.tutor_profile.upi_id or 'rajesh.maths@okaxis' }}" id="upi-val-{{ r.id }}" readonly>
+                                                                <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('upi-val-{{ r.id }}').value); alert('UPI ID copied to clipboard!');">
+                                                                    <i class="bi bi-clipboard"></i> Copy
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        {% if r.tutor_profile.payment_instructions %}
+                                                            <div class="small text-muted fst-italic">
+                                                                * {{ r.tutor_profile.payment_instructions }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-semibold">Step 2: Enter Transaction UTR / Ref Number *</label>
+                                                        <input type="text" name="payment_reference" class="form-control form-control-sm" placeholder="e.g. 429183719284 or GPay Transaction ID" required>
+                                                        <div class="form-text small">After completing UPI transfer, paste your 12-digit UTR reference ID here so the tutor can verify.</div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <label class="form-label small text-secondary">Optional Note</label>
+                                                        <input type="text" name="payment_notes" class="form-control form-control-sm" placeholder="e.g. Paid from GPay for Week 1 classes">
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary-custom btn-sm">
+                                                        <i class="bi bi-check2-circle me-1"></i> Submit Payment Proof
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>

@@ -698,6 +698,37 @@ def create_app(config_class=Config):
 
         return redirect(url_for('student_dashboard'))
 
+    @app.route('/student/request/<int:req_id>/pay', methods=['POST'])
+    @role_required('student')
+    def student_submit_payment(req_id):
+        verify_csrf()
+        user_id = session['user_id']
+        req = db.session.get(TuitionRequest, req_id)
+
+        if not req or req.student_id != user_id:
+            flash('Request not found or unauthorized.', 'danger')
+            return redirect(url_for('student_dashboard'))
+
+        if req.status != 'accepted':
+            flash('Payment can only be submitted for accepted requests.', 'warning')
+            return redirect(url_for('student_dashboard'))
+
+        payment_reference = request.form.get('payment_reference', '').strip()
+        payment_notes = request.form.get('payment_notes', '').strip()
+
+        if not payment_reference:
+            flash('Please enter your payment reference / UTR transaction ID.', 'danger')
+            return redirect(url_for('student_dashboard'))
+
+        req.payment_status = 'paid_submitted'
+        req.payment_reference = payment_reference
+        req.payment_notes = payment_notes
+        req.paid_at = datetime.utcnow()
+        db.session.commit()
+
+        flash('Payment details submitted! Your tutor will verify and confirm.', 'success')
+        return redirect(url_for('student_dashboard'))
+
     # ==========================================
     # 7. TUTOR DASHBOARD & ACTIONS
     # ==========================================
@@ -769,6 +800,29 @@ def create_app(config_class=Config):
         flash(f'Request has been marked as {new_status}.', 'success')
         return redirect(url_for('tutor_dashboard'))
 
+    @app.route('/tutor/request/<int:req_id>/confirm-payment', methods=['POST'])
+    @role_required('tutor')
+    def tutor_confirm_payment(req_id):
+        verify_csrf()
+        user = db.session.get(User, session['user_id'])
+        profile = user.tutor_profile
+        req = db.session.get(TuitionRequest, req_id)
+
+        if not req or req.tutor_id != profile.id:
+            flash('Request not found or unauthorized.', 'danger')
+            return redirect(url_for('tutor_dashboard'))
+
+        action = request.form.get('action', 'confirm')
+        if action == 'confirm':
+            req.payment_status = 'payment_confirmed'
+            flash('Payment verified and confirmed! Lesson booking is secured.', 'success')
+        else:
+            req.payment_status = 'unpaid'
+            flash('Payment marked as unverified.', 'warning')
+
+        db.session.commit()
+        return redirect(url_for('tutor_dashboard'))
+
     @app.route('/tutor/profile/update', methods=['POST'])
     @role_required('tutor')
     def update_tutor_profile():
@@ -786,6 +840,8 @@ def create_app(config_class=Config):
         student_levels = request.form.get('student_levels', '').strip()
         availability = request.form.get('availability', '').strip()
         city = request.form.get('city', '').strip()
+        upi_id = request.form.get('upi_id', '').strip()
+        payment_instructions = request.form.get('payment_instructions', '').strip()
         selected_subjects = request.form.getlist('subjects')
 
         if not headline or not biography or not hourly_fee:
@@ -806,6 +862,8 @@ def create_app(config_class=Config):
         profile.languages = languages or profile.languages
         profile.student_levels = student_levels or profile.student_levels
         profile.availability = availability or profile.availability
+        profile.upi_id = upi_id
+        profile.payment_instructions = payment_instructions
         if city:
             user.city = city
 

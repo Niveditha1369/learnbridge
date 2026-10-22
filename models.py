@@ -57,6 +57,8 @@ class TutorProfile(db.Model):
     languages = db.Column(db.String(200), nullable=False, default='English')
     student_levels = db.Column(db.String(200), nullable=False, default='Middle School, High School')
     availability = db.Column(db.String(200), nullable=False, default='Weekdays, Flexible')
+    upi_id = db.Column(db.String(100), nullable=True)
+    payment_instructions = db.Column(db.Text, nullable=True)
     profile_image_path = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -78,6 +80,8 @@ class TutorProfile(db.Model):
             'languages': self.languages,
             'student_levels': self.student_levels,
             'availability': self.availability,
+            'upi_id': self.upi_id,
+            'payment_instructions': self.payment_instructions,
             'profile_image_path': self.profile_image_path,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'subjects': [s.to_dict() for s in self.subjects]
@@ -116,6 +120,10 @@ class TuitionRequest(db.Model):
     budget = db.Column(db.Integer, nullable=False)
     message = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending', nullable=False)  # pending, accepted, rejected, cancelled
+    payment_status = db.Column(db.String(20), default='unpaid', nullable=False)  # unpaid, paid_submitted, payment_confirmed
+    payment_reference = db.Column(db.String(100), nullable=True)
+    payment_notes = db.Column(db.Text, nullable=True)
+    paid_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -137,6 +145,10 @@ class TuitionRequest(db.Model):
             'budget': self.budget,
             'message': self.message,
             'status': self.status,
+            'payment_status': self.payment_status,
+            'payment_reference': self.payment_reference,
+            'payment_notes': self.payment_notes,
+            'paid_at': self.paid_at.strftime('%b %d, %Y %I:%M %p') if self.paid_at else None,
             'created_at': self.created_at.strftime('%b %d, %Y %I:%M %p') if self.created_at else None,
             'updated_at': self.updated_at.strftime('%b %d, %Y %I:%M %p') if self.updated_at else None
         }
